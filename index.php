@@ -4,7 +4,7 @@
 Plugin Name: Sticky Menu
 Plugin URI:  
 Description: Sticky Menu
-Version:     1.0.0
+Version:     1.0.1
 Author:      Grzegorz Kowalski
 Author URI:  https://grzegorzkowalski.pl
 */
@@ -21,7 +21,8 @@ function sticky_menu_script() {
 			console.log('setScrollMarginTop');
             var menuLinks = document.querySelectorAll('header a[href*="#"]');
             var headerHeight = document.querySelector('header').offsetHeight;
-            var scrollMarginTop = headerHeight;
+            let wpadminbar_height = document.getElementById('wpadminbar') ? document.getElementById('wpadminbar').offsetHeight : 0;
+            var scrollMarginTop = headerHeight - wpadminbar_height;
 
             menuLinks.forEach(function(link) {
                 var target = document.getElementById(link.getAttribute('href').split('#')[1]);
