@@ -15,6 +15,27 @@ add_action( 'wp_head', 'sticky_menu_script' );
 function sticky_menu_script() {
     ?>
     <script>
+        // function to set class active to menu link when section targeted by menu links with hash in href is in viewport
+        function setActiveMenuLink() {
+            var menuLinks = document.querySelectorAll('header a[href*="#"]');
+
+            menuLinks.forEach(function(link) {
+                var target = document.getElementById(link.getAttribute('href').split('#')[1]);
+                var targetRect = target.getBoundingClientRect();
+                var targetTop = targetRect.top;
+                var targetBottom = targetRect.bottom;
+                const innerHeight = window.innerHeight || document.documentElement.clientHeight;
+
+                if (targetTop >= 0 && targetTop < innerHeight) {
+                    menuLinks.forEach(function(link) {
+                        link.classList.remove('active');
+                    });
+                    link.classList.add('active');
+                    link.focus();
+                    console.log('focus on ' + link.getAttribute('href').split('#')[1]);
+                }
+            });
+        }
 
         // function to set scroll-margin-top to all elements targeted by menu links with hash in href
         function setScrollMarginTop() {
@@ -54,6 +75,7 @@ function sticky_menu_script() {
                     header.style.position = header_original_position;
                     header.style.backgroundColor = header_original_background;
                 }
+                setActiveMenuLink();
             };
 
             setScrollMarginTop();
