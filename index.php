@@ -15,6 +15,20 @@ add_action( 'wp_head', 'sticky_menu_script' );
 function sticky_menu_script() {
     ?>
     <script>
+
+        // function to set scroll-margin-top to all elements targeted by menu links with hash in href
+        function setScrollMarginTop() {
+			console.log('setScrollMarginTop');
+            var menuLinks = document.querySelectorAll('header a[href*="#"]');
+            var headerHeight = document.querySelector('header').offsetHeight;
+            var scrollMarginTop = headerHeight;
+
+            menuLinks.forEach(function(link) {
+                var target = document.getElementById(link.getAttribute('href').split('#')[1]);
+                target.style.scrollMarginTop = scrollMarginTop + 'px';
+            });
+        }
+
         // run when DOM is loaded
         document.addEventListener("DOMContentLoaded", function(event) {
             var header = document.querySelector('header');
@@ -40,6 +54,8 @@ function sticky_menu_script() {
                     header.style.backgroundColor = header_original_background;
                 }
             };
+
+            setScrollMarginTop();
         });
     </script>
     <?php
