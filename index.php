@@ -4,7 +4,7 @@
 Plugin Name: Sticky Menu
 Plugin URI:  
 Description: Sticky Menu
-Version:     1.0.1
+Version:     1.0.2
 Author:      Grzegorz Kowalski
 Author URI:  https://grzegorzkowalski.pl
 */
@@ -21,6 +21,7 @@ function sticky_menu_script() {
 
             menuLinks.forEach(function(link) {
                 var target = document.getElementById(link.getAttribute('href').split('#')[1]);
+                if (!target) return; // if target element doesn't exist, skip to next iteration
                 var targetRect = target.getBoundingClientRect();
                 var targetTop = targetRect.top;
                 var targetBottom = targetRect.bottom;
@@ -32,22 +33,27 @@ function sticky_menu_script() {
                     });
                     link.classList.add('active');
                     link.focus();
-                    console.log('focus on ' + link.getAttribute('href').split('#')[1]);
+                    //console.log('focus on ' + link.getAttribute('href').split('#')[1]);
                 }
             });
         }
 
         // function to set scroll-margin-top to all elements targeted by menu links with hash in href
         function setScrollMarginTop() {
-			console.log('setScrollMarginTop');
-            var menuLinks = document.querySelectorAll('header a[href*="#"]');
-            var headerHeight = document.querySelector('header').offsetHeight;
-            let wpadminbar_height = document.getElementById('wpadminbar') ? document.getElementById('wpadminbar').offsetHeight : 0;
-            var scrollMarginTop = headerHeight - wpadminbar_height;
+            const menuLinks = document.querySelectorAll('header a[href*="#"]');
+            const header_element = document.querySelector('header');
+            //const headerHeight = header_element.offsetHeight;
+            const headerHeight = 120;
+            console.log('header height: ' + headerHeight);
+            const wpadminbar_height = document.getElementById('wpadminbar') ? document.getElementById('wpadminbar').offsetHeight : 0;
+            const scrollMarginTop = headerHeight - wpadminbar_height;
 
             menuLinks.forEach(function(link) {
-                var target = document.getElementById(link.getAttribute('href').split('#')[1]);
-                target.style.scrollMarginTop = scrollMarginTop + 'px';
+                let target = document.getElementById(link.getAttribute('href').split('#')[1]);
+                if (target) {
+                    target.style.scrollMarginTop = scrollMarginTop + 'px';
+                    console.log('scroll-margin-top set to ' + scrollMarginTop + 'px for ' + link.getAttribute('href').split('#')[1]);
+                }
             });
         }
 
