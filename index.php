@@ -4,10 +4,38 @@
 Plugin Name: Sticky Menu
 Plugin URI:  
 Description: Sticky Menu
-Version:     1.0.2
+Version:     1.0.3
 Author:      Grzegorz Kowalski
 Author URI:  https://grzegorzkowalski.pl
 */
+
+add_action( 'customize_register', 'gk_sticky_menu_customize_register' );
+
+function gk_sticky_menu_customize_register( $wp_customize ) {
+	$wp_customize->add_panel('gk_sticky_menu', array(
+		'title' => __('Sticky menu plugin', 'gk_theme'),
+		'description' => __('Ustawienia motywu', 'gk_theme'),
+		'priority' => 160,
+	));
+
+	$wp_customize->add_section('gk_sticky_menu_settings', array(
+		'title' => __('Settings', 'gk_theme'),
+		'description' => __('Ustawienia formularzy', 'gk_theme'),
+		'panel' => 'gk_sticky_menu',
+	));
+
+	$wp_customize->add_setting('gk_sticky_menu_header_height', array(
+		'default' => '',
+		'transport' => 'refresh',
+		'sanitize_callback' => 'sanitize_text_field',
+	));
+
+	$wp_customize->add_control('gk_sticky_menu_header_height', array(
+		'label' => __('Header height', 'gk_theme'),
+		'section' => 'gk_sticky_menu_settings',
+		'type' => 'email',
+	));
+}
 
 // add custom script to the header using wp_head hook
 add_action( 'wp_head', 'sticky_menu_script' );
@@ -42,8 +70,14 @@ function sticky_menu_script() {
         function setScrollMarginTop() {
             const menuLinks = document.querySelectorAll('header a[href*="#"]');
             const header_element = document.querySelector('header');
-            //const headerHeight = header_element.offsetHeight;
-            const headerHeight = 120;
+            
+            let headerHeight = '<?php echo get_theme_mod('gk_sticky_menu_header_height'); ?>';
+            if (headerHeight == '') {
+                headerHeight = header_element.offsetHeight;
+            } else {
+                headerHeight = parseInt(headerHeight);
+            }
+
             console.log('header height: ' + headerHeight);
             const wpadminbar_height = document.getElementById('wpadminbar') ? document.getElementById('wpadminbar').offsetHeight : 0;
             const scrollMarginTop = headerHeight - wpadminbar_height;
