@@ -4,7 +4,7 @@
 Plugin Name: Sticky Menu
 Plugin URI:  
 Description: Sticky Menu
-Version:     1.0.3
+Version:     1.0.4
 Author:      Grzegorz Kowalski
 Author URI:  https://grzegorzkowalski.pl
 */
@@ -33,8 +33,28 @@ function gk_sticky_menu_customize_register( $wp_customize ) {
 	$wp_customize->add_control('gk_sticky_menu_header_height', array(
 		'label' => __('Header height', 'gk_theme'),
 		'section' => 'gk_sticky_menu_settings',
-		'type' => 'email',
+		'type' => 'text',
 	));
+
+    $wp_customize->add_setting('gk_sticky_menu_header_selector', array(
+		'default' => '',
+		'transport' => 'refresh',
+		'sanitize_callback' => 'sanitize_text_field',
+	));
+
+	$wp_customize->add_control('gk_sticky_menu_header_selector', array(
+		'label' => __('Header selector', 'gk_theme'),
+		'section' => 'gk_sticky_menu_settings',
+		'type' => 'text',
+	));
+}
+
+function gk_sticky_menu_selector() {
+    $selector = get_theme_mod('gk_sticky_menu_header_selector');
+    if (empty($selector)) {
+        $selector = 'header';
+    }
+    return $selector;
 }
 
 // add custom script to the header using wp_head hook
@@ -45,7 +65,7 @@ function sticky_menu_script() {
     <script>
         // function to set class active to menu link when section targeted by menu links with hash in href is in viewport
         function setActiveMenuLink() {
-            var menuLinks = document.querySelectorAll('header a[href*="#"]');
+            var menuLinks = document.querySelectorAll('<?php echo gk_sticky_menu_selector() ?> a[href*="#"]');
 
             menuLinks.forEach(function(link) {
                 var target = document.getElementById(link.getAttribute('href').split('#')[1]);
@@ -68,8 +88,8 @@ function sticky_menu_script() {
 
         // function to set scroll-margin-top to all elements targeted by menu links with hash in href
         function setScrollMarginTop() {
-            const menuLinks = document.querySelectorAll('header a[href*="#"]');
-            const header_element = document.querySelector('header');
+            const menuLinks = document.querySelectorAll('<?php echo gk_sticky_menu_selector() ?> a[href*="#"]');
+            const header_element = document.querySelector('<?php echo gk_sticky_menu_selector() ?>');
             
             let headerHeight = '<?php echo get_theme_mod('gk_sticky_menu_header_height'); ?>';
             if (headerHeight == '') {
@@ -93,7 +113,7 @@ function sticky_menu_script() {
 
         // run when DOM is loaded
         document.addEventListener("DOMContentLoaded", function(event) {
-            var header = document.querySelector('header');
+            var header = document.querySelector('<?php echo gk_sticky_menu_selector() ?>');
             var header_original_background = window.getComputedStyle(header).backgroundColor;
             var header_original_position = window.getComputedStyle(header).position;
             var sticky = header.offsetTop;
