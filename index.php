@@ -4,7 +4,7 @@
 Plugin Name: Sticky Menu
 Plugin URI:  
 Description: Sticky Menu
-Version:     1.0.4
+Version:     1.0.5
 Author:      Grzegorz Kowalski
 Author URI:  https://grzegorzkowalski.pl
 */
@@ -47,9 +47,26 @@ function gk_sticky_menu_customize_register( $wp_customize ) {
 		'section' => 'gk_sticky_menu_settings',
 		'type' => 'text',
 	));
+
+    // add dropdown with options 'fixed' and 'sticky' to select sticky menu type
+    $wp_customize->add_setting('gk_sticky_menu_type', array(
+        'default' => 'sticky',
+        'transport' => 'refresh',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    $wp_customize->add_control('gk_sticky_menu_type', array(
+        'label' => __('Sticky menu type', 'gk_theme'),
+        'section' => 'gk_sticky_menu_settings',
+        'type' => 'select',
+        'choices' => array(
+            'fixed' => 'Fixed',
+            'sticky' => 'Sticky',
+        ),
+    ));
 }
 
-function gk_sticky_menu_selector() {
+function gk_sticky_menu_header_selector() {
     $selector = get_theme_mod('gk_sticky_menu_header_selector');
     if (empty($selector)) {
         $selector = 'header';
@@ -65,7 +82,7 @@ function sticky_menu_script() {
     <script>
         // function to set class active to menu link when section targeted by menu links with hash in href is in viewport
         function setActiveMenuLink() {
-            var menuLinks = document.querySelectorAll('<?php echo gk_sticky_menu_selector() ?> a[href*="#"]');
+            var menuLinks = document.querySelectorAll('<?php echo gk_sticky_menu_header_selector() ?> a[href*="#"]');
 
             menuLinks.forEach(function(link) {
                 var target = document.getElementById(link.getAttribute('href').split('#')[1]);
@@ -88,8 +105,8 @@ function sticky_menu_script() {
 
         // function to set scroll-margin-top to all elements targeted by menu links with hash in href
         function setScrollMarginTop() {
-            const menuLinks = document.querySelectorAll('<?php echo gk_sticky_menu_selector() ?> a[href*="#"]');
-            const header_element = document.querySelector('<?php echo gk_sticky_menu_selector() ?>');
+            const menuLinks = document.querySelectorAll('<?php echo gk_sticky_menu_header_selector() ?> a[href*="#"]');
+            const header_element = document.querySelector('<?php echo gk_sticky_menu_header_selector() ?>');
             
             let headerHeight = '<?php echo get_theme_mod('gk_sticky_menu_header_height'); ?>';
             if (headerHeight == '') {
@@ -111,24 +128,41 @@ function sticky_menu_script() {
             });
         }
 
+        // function to get body element background color and convert it to rgba
+        function getBodyBgColor(opacity) {
+            let bodyBgColor = window.getComputedStyle(document.body).backgroundColor;
+            const bodyBgColorRgba = bodyBgColor.replace(')', ', ' + opacity +')').replace('rgb', 'rgba');
+            return bodyBgColorRgba;
+        }
+
         // run when DOM is loaded
         document.addEventListener("DOMContentLoaded", function(event) {
-            var header = document.querySelector('<?php echo gk_sticky_menu_selector() ?>');
-            var header_original_background = window.getComputedStyle(header).backgroundColor;
-            var header_original_position = window.getComputedStyle(header).position;
-            var sticky = header.offsetTop;
+            const header = document.querySelector('<?php echo gk_sticky_menu_header_selector() ?>');
+            const header_original_offsetTop = header.offsetTop;
+            const header_original_background = window.getComputedStyle(header).backgroundColor;
+            const header_original_position = window.getComputedStyle(header).position;
+            const sticky_type = '<?php echo get_theme_mod('gk_sticky_menu_type'); ?>';
+            const wpadminbar_height = document.getElementById('wpadminbar') ? document.getElementById('wpadminbar').offsetHeight : 0;
 
-            // function to get body element background color and convert it to rgba
-            function getBodyBgColor(opacity) {
-                var bodyBgColor = window.getComputedStyle(document.body).backgroundColor;
-                var bodyBgColorRgba = bodyBgColor.replace(')', ', ' + opacity +')').replace('rgb', 'rgba');
-                return bodyBgColorRgba;
+            console.log('sticky type: ' + sticky_type);
+
+            if (sticky_type == 'sticky') {
+                header.style.top = wpadminbar_height + 'px';
             }
 
             window.onscroll = function(e) {
-                if (window.pageYOffset > sticky) {
+                let make_header_sticky = false;
+
+                if (sticky_type == 'sticky') {
+                    make_header_sticky = window.pageYOffset > header_original_offsetTop;
+                }
+                if (sticky_type == 'fixed') {
+                    make_header_sticky = window.pageYOffset > header.offsetTop;
+                }
+
+                if (make_header_sticky) {
                     header.classList.add("sticky-header");
-                    header.style.position = "fixed";
+                    header.style.position = sticky_type;
                     header.style.backgroundColor = getBodyBgColor(1);
                 } else {
                     header.classList.remove("sticky-header");
