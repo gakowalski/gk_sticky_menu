@@ -4,7 +4,7 @@
 Plugin Name: Sticky Menu
 Plugin URI:  
 Description: Sticky Menu
-Version:     1.0.5
+Version:     1.0.6
 Author:      Grzegorz Kowalski
 Author URI:  https://grzegorzkowalski.pl
 */
@@ -142,12 +142,18 @@ function sticky_menu_script() {
             const header_original_background = window.getComputedStyle(header).backgroundColor;
             const header_original_position = window.getComputedStyle(header).position;
             const sticky_type = '<?php echo get_theme_mod('gk_sticky_menu_type'); ?>';
-            const wpadminbar_height = document.getElementById('wpadminbar') ? document.getElementById('wpadminbar').offsetHeight : 0;
 
             console.log('sticky type: ' + sticky_type);
 
             if (sticky_type == 'sticky') {
-                header.style.top = wpadminbar_height + 'px';
+                const wpadminbar = document.getElementById('wpadminbar');
+                const wpadminbar_position =  wpadminbar ? window.getComputedStyle(wpadminbar).position : 'static';
+
+                if (wpadminbar_position == 'fixed') {
+                    header.style.top = wpadminbar.offsetHeight + 'px';
+                } else {
+                    header.style.top = 0;
+                }
             }
 
             window.onscroll = function(e) {
